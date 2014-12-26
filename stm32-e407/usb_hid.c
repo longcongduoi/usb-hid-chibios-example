@@ -385,11 +385,21 @@ usb_request_hook_cb (USBDriver * usbp)
     {
       if (usbp->setup[1] == HID_GET_REPORT)
 	{
-	  // TODO
+	  /* setup[3] (MSB of wValue) = Report ID (must be 0 as we
+	   * have declared only one IN report)
+	   * setup[2] (LSB of wValue) = Report Type (1 = Input, 3 = Feature)
+	   */
+	  if ((usbp->setup[3] == 0) && (usbp->setup[2] == 1))
+	    {
+	      struct usb_hid_in_report_s in_report;
+	      usb_build_in_report (&in_report);
+	      usbSetupTransfer (usbp, (uint8_t *) & in_report,
+				USB_HID_IN_REPORT_SIZE, NULL);
+	    }
 	}
       if (usbp->setup[1] == HID_SET_REPORT)
 	{
-	  // TODO
+	  // Not implemented (yet)
 	}
     }
 
@@ -553,8 +563,6 @@ usb_send_hid_report (struct usb_hid_in_report_s *report)
 
   if (res > USB_HID_IN_REPORT_SIZE)
     {
-      report->sequence_number = in_report_sequence_number++;
-
       chOQWriteTimeout (&usb_output_queue, (uint8_t *) report,
 			USB_HID_IN_REPORT_SIZE, TIME_INFINITE);
 
@@ -564,4 +572,14 @@ usb_send_hid_report (struct usb_hid_in_report_s *report)
     }
   else
     return 0;
+}
+
+/*
+ * Prepare an IN report
+ */
+void
+usb_build_in_report (struct usb_hid_in_report_s *report)
+{
+  report->sequence_number = in_report_sequence_number++;
+  report->wkup_pb_value = palReadPad (GPIOA, GPIOA_BUTTON_WKUP);
 }

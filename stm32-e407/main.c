@@ -57,7 +57,8 @@ buttonThread (void __attribute__ ((__unused__)) * arg)
 	    {
 	      chSysUnlock ();
 
-	      usb_hid_in_report.wkup_pb_value = wkup_cur_state;
+	      // Build the IN report to be sent
+	      usb_build_in_report (&usb_hid_in_report);
 
 	      // Send the IN report
 	      usb_send_hid_report (&usb_hid_in_report);

@@ -84,4 +84,7 @@ void init_usb_driver (void);
 // Queue a report to be sent
 int usb_send_hid_report (struct usb_hid_in_report_s *report);
 
+// Prepare an IN report
+void usb_build_in_report (struct usb_hid_in_report_s *report);
+
 #endif /* _USB_HID_H_ */
